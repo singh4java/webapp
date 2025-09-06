@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OCI AI Skill Check — By Manvendra Singh</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#9aa4b2;--correct:#16a34a;--wrong:#ef4444}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial; background:linear-gradient(180deg,#071029 0%, #071020 100%); color:#e6eef6; margin:0; padding:20px}
+    .container{max-width:900px;margin:0 auto}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    h1{font-size:20px;margin:0}
+    .meta{color:var(--muted);font-size:13px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    .question-number{font-weight:700;color:var(--accent)}
+    .question-text{margin:6px 0 10px}
+    .options{display:grid;gap:8px}
+    .option{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:10px;border-radius:8px;cursor:pointer}
+    .option.correct{background:rgba(22,163,74,0.10);border-color:rgba(22,163,74,0.22)}
+    .option.wrong{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.22)}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    button{background:var(--accent);color:#032029;border:none;padding:10px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .progress{height:10px;background:rgba(255,255,255,0.03);border-radius:8px;overflow:hidden;margin-top:8px}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#60a5fa);width:0%}
+    .footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--muted);font-size:13px}
+    .results{padding:14px;border-radius:10px;margin-top:12px}
+    .answers-list{margin-top:10px}
+    @media (max-width:720px){body{padding:12px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>OCI AI Skill Check — By Manvendra Singh</h1>
+        <div class="meta" id="metaCount">29 questions — Passing score: 100%</div>
+      </div>
+      <div class="meta">Skill Check • Answers visible</div>
+    </header>
+
+    <div class="card">
+      <div id="questionArea"></div>
+
+      <div class="controls">
+        <button id="prevBtn" class="ghost">Previous</button>
+        <button id="nextBtn" class="ghost">Next</button>
+        <button id="submitBtn">Submit</button>
+        <button id="toggleBtn" class="ghost">Hide Correct</button>
+        <button id="prefillBtn" class="ghost">Prefill Answer Key</button>
+        <button id="resetBtn" class="ghost">Reset</button>
+      </div>
+
+      <div class="progress" title="Progress">
+        <i id="progressBar"></i>
+      </div>
+
+      <div class="footer">
+        <div id="position">Question 1 / 29</div>
+        <div id="selectedCount">Selected: 0</div>
+      </div>
+
+      <div id="resultArea"></div>
+    </div>
+
+    <div style="text-align:center;color:var(--muted);font-size:13px;margin-top:8px">Tip: use Prefill to view answer key, or answer then Submit to grade.</div>
+  </div>
+
+  <script>
+    const questions = [
+      {q: 'Which OCI AI service is used to extract tabular content from documents?', options:['Object Storage','Vision','Language','Speech'], answer:1},
+      {q: 'Which language is NOT supported by the OCI Speech service?', options:['Portuguese','Mandarin','Spanish','English'], answer:1},
+      {q: 'Which capability is offered by the OCI Language service?', options:['Speech-to-Text Conversion','Image Recognition','Text Sentiment Analysis','Object Detection'], answer:2},
+      {q: 'Which capability of OCI Vision service uses a bounding box inside an image?', options:['Object Repair','Image Classification','Object Detection','Image Recognition'], answer:2},
+      {q: 'How do chat models in OCI Generative AI differ from embedding models?', options:['Embedding models generate text responses, while chat models focus on vector representations','Both perform the same function','Chat models are for search queries, embedding models process images','Chat models generate text, embedding models convert text into numerical representations'], answer:3},
+      {q: 'Your company wants to fine-tune a pre-trained LLM to better respond to travel bookings. What resource is required?', options:['Model Catalog','AI Vision Service','Object Storage Bucket','Dedicated AI Cluster'], answer:3},
+      {q: 'What is the primary purpose of the OCI Playground in Generative AI?', options:['To store embeddings for AI vector search','To manage GPU-based compute resources','To deploy AI models for production use','To visually explore and test models without writing code'], answer:3},
+      {q: 'Which key feature allows AI Vector Search to store embeddings in Oracle Database 23ai?', options:['Graph-based indexing','IMAGE datatype','VECTOR datatype','JSON object storage'], answer:2},
+      {q: 'What is the purpose of model endpoints in OCI Generative AI?', options:['To host and serve fine-tuned models for inference','To store embeddings for AI vector search','To manage network security for AI applications','To automatically scale AI compute resources'], answer:0},
+      {q: 'What is the advantage of using OCI Superclusters for AI workloads?', options:['Deliver exceptional performance and scalability for complex AI tasks','Offer seamless integration with social media platforms','Provide a cost-effective solution for simple AI tasks','Are ideal for tasks like text-to-speech conversion'], answer:0},
+      {q: 'Which is NOT an Oracle Cloud Infrastructure AI service?', options:['Vision','Speech','Translator','Language'], answer:2},
+      {q: 'Which OCI Data Science feature allows you to use catalogued models as HTTP endpoints?', options:['Jobs','Model Catalog','Model Deployments','Conda Environments'], answer:2},
+      {q: 'Which OCI Data Science feature enables you to define and run repeatable ML tasks?', options:['Conda Environments','Model Detection','Model Catalog','Jobs'], answer:3},
+      {q: 'Which data type is used in Oracle Database 23ai to compare documents?', options:['Array','Vector','String','Boolean'], answer:1},
+      {q: 'What aspect of LLMs significantly impacts their capabilities and resource requirements?', options:['Number of training iterations','Total number of GPUs used','Model size and parameters (tokens & weights)','Complexity of programming languages'], answer:2},
+      {q: 'What is "in-context learning" in LLMs?', options:['Modifying the model permanently','Training on diverse tasks','Providing examples via prompt','Teaching through zero-shot learning'], answer:2},
+      {q: 'Fine-tuning is unnecessary if your application does not involve which aspect?', options:['Efficiency & resource utilization','Domain vocabulary','Task-specific adaptation','Bias mitigation'], answer:1},
+      {q: 'Sequence models are used for sequential data. Which is NOT a good use case?', options:['Image classification and object recognition','Speech recognition and translation','NLP tasks like sentiment analysis','Time series forecasting'], answer:0},
+      {q: 'Which statement accurately describes generative AI?', options:['Exclusively trains to predict patterns','Focuses on accurate predictions','Creates new content without predictions','Generates only text-based outputs'], answer:2},
+      {q: 'Which sequence model can maintain relevant information over long sequences?', options:['Convolutional Neural Networks','Feed Forward Neural Networks','Recurrent Neural Networks','Long Short-Term Memory Neural Networks'], answer:3},
+      {q: 'Which type of RNN is used for Machine Translation?', options:['One-to-Many','Many-to-Many','One-to-One','Many-to-One'], answer:1},
+      {q: 'How do hidden layers help with character recognition?', options:['Directly mapping inputs to outputs','Increasing processing speed','Improving interpretability','Learning complex features like edges and shapes'], answer:3},
+      {q: 'Which Neural Network has a feedback loop for sequential data?', options:['Recurrent Neural Networks','Multi-Layer Perceptron','Convolutional Neural Networks','Feed Forward Neural Networks'], answer:0},
+      {q: 'Which component of ANN performs weighted summation and applies activation?', options:['Iterator','Classifier','Bias','Neuron'], answer:3},
+      {q: 'Which algorithm is used for predicting continuous numerical values?', options:['Linear Regression','Decision Tree Classification','Logistic Regression','K-Means Clustering'], answer:0},
+      {q: 'Which ML algorithm learns from outcomes to make decisions?', options:['Natural Language Processing','Unsupervised Learning','Supervised Learning','Reinforcement Learning'], answer:3},
+      {q: 'Which function is used in Logistic Regression to predict a loan defaulter?', options:['Sigmoidal function','Identity function','Step function','Gaussian function'], answer:0},
+      {q: 'Which ML algorithm is used to predict resale price of a residential property?', options:['Regression','Anomaly Detection','Binary Classification','Multiclass Classification'], answer:0},
+      {q: 'Which application does NOT require ML?', options:['Stock Price Predictions','Password Validation','Detecting spam emails','Customer Segmentation'], answer:1}
+    ];
+
+    let current = 0;
+    const answers = new Array(questions.length).fill(null);
+    const passingPct = 100;
+    let showAnswers = true; // correct answers visible by default
+
+    const questionArea = document.getElementById('questionArea');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const prefillBtn = document.getElementById('prefillBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const position = document.getElementById('position');
+    const selectedCount = document.getElementById('selectedCount');
+    const progressBar = document.getElementById('progressBar');
+    const resultArea = document.getElementById('resultArea');
+
+    function renderQuestion(index){
+      const item = questions[index];
+      questionArea.innerHTML = `
+        <div class="question-number">Q${index+1}</div>
+        <div class="question-text">${item.q}</div>
+        <div class="options" id="opts"></div>
+      `;
+      const optsEl = document.getElementById('opts');
+      item.options.forEach((o,i)=>{
+        const div = document.createElement('label');
+        div.className = 'option';
+        const checked = answers[index]===i ? 'checked' : '';
+        div.innerHTML = `<input type="radio" name="opt" value="${i}" ${checked}> ${o}`;
+        if(showAnswers){ if(i===item.answer) div.classList.add('correct'); if(answers[index]!==null && answers[index]===i && answers[index]!==item.answer) div.classList.add('wrong'); }
+        div.addEventListener('click', ()=>{ const r = div.querySelector('input'); r.checked = true; answers[index]=parseInt(r.value); updateSelectedCount(); if(showAnswers) renderQuestion(index); });
+        optsEl.appendChild(div);
+      });
+      position.textContent = `Question ${index+1} / ${questions.length}`;
+      progressBar.style.width = `${((index)/(questions.length-1))*100}%`;
+    }
+
+    function updateSelectedCount(){ const cnt = answers.filter(a=>a!==null).length; selectedCount.textContent = `Selected: ${cnt}`; }
+
+    prevBtn.addEventListener('click', ()=>{ if(current>0){ current--; renderQuestion(current);} });
+    nextBtn.addEventListener('click', ()=>{ if(current<questions.length-1){ current++; renderQuestion(current);} });
+
+    submitBtn.addEventListener('click', ()=>{
+      let score=0;
+      questions.forEach((q,i)=>{ if(answers[i]===q.answer) score++; });
+      const pct = Math.round(score/questions.length*100);
+      const pass = pct>=passingPct;
+      resultArea.innerHTML = `<div class="results ${pass? 'pass':'fail'}">Your score: <strong>${score}/${questions.length}</strong> (${pct}%) — ${pass? 'PASS':'FAIL'} (Passing: ${passingPct}%)</div>`;
+      // list missed
+      const missed = [];
+      questions.forEach((q,i)=>{ if(answers[i]!==q.answer) missed.push({idx:i+1, q:q.q, correct:q.options[q.answer], given: answers[i]===null? 'Not answered': q.options[answers[i]]}); });
+      if(missed.length){ const list = document.createElement('div'); list.className='answers-list card'; list.innerHTML='<strong>Missed questions</strong>'; const ol=document.createElement('ol'); missed.forEach(m=>{ const li=document.createElement('li'); li.innerHTML=`<div><strong>Q${m.idx}:</strong> ${m.q}</div><div style="color:var(--wrong)">Your answer: ${m.given}</div><div style="color:var(--correct)">Correct: ${m.correct}</div>`; ol.appendChild(li); }); list.appendChild(ol); resultArea.appendChild(list); }
+    });
+
+    toggleBtn.addEventListener('click', ()=>{ showAnswers = !showAnswers; toggleBtn.textContent = showAnswers? 'Hide Correct':'Show Correct'; renderQuestion(current); const existing=document.querySelector('.answers-list'); if(existing) existing.remove(); });
+
+    prefillBtn.addEventListener('click', ()=>{ if(!confirm('Prefill correct answers? This will overwrite any selections.')) return; for(let i=0;i<questions.length;i++) answers[i]=questions[i].answer; renderQuestion(current); updateSelectedCount(); resultArea.innerHTML=''; });
+
+    resetBtn.addEventListener('click', ()=>{ if(!confirm('Reset all answers and start over?')) return; for(let i=0;i<answers.length;i++) answers[i]=null; current=0; renderQuestion(current); updateSelectedCount(); resultArea.innerHTML=''; });
+
+    document.addEventListener('keydown',(e)=>{ if(e.key==='ArrowRight') nextBtn.click(); if(e.key==='ArrowLeft') prevBtn.click(); if(e.key==='s' && (e.ctrlKey||e.metaKey)) { e.preventDefault(); submitBtn.click(); } });
+
+    document.getElementById('metaCount').textContent = `${questions.length} questions — Passing score: ${passingPct}%`;
+    renderQuestion(current);
+    updateSelectedCount();
+  </script>
+</body>
+</html>
+
+
+Done — I created a separate HTML test file named "Oci Ai Skill Check Test" containing the remaining 29 skill-check questions (Q41–Q69).
+
+Features:
+
+Questions listed as a dedicated skill-check test.
+
+Correct answers visible by default, toggle to hide/show.
+
+Prefill option to preselect the answer key.
+
+Submit grades against a 100% passing threshold and shows missed questions with your answer vs correct.
+
+
+You can open and edit the new file in the canvas. Want me to change the passing score for this skill-check page to 80% instead, or export it as a standalone HTML file for download?
+
